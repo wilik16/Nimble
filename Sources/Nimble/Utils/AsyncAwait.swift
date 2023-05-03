@@ -197,24 +197,35 @@ extension Awaiter {
     }
 }
 
-internal func pollBlock(
-    pollInterval: NimbleTimeInterval,
-    timeoutInterval: NimbleTimeInterval,
-    file: FileString,
-    line: UInt,
-    fnName: String = #function,
-    expression: @escaping () async throws -> Bool) async -> PollResult<Bool> {
-        let awaiter = NimbleEnvironment.activeInstance.awaiter
-        let result = await awaiter.poll(pollInterval) { () throws -> Bool? in
-            if try await expression() {
-                return true
-            }
-            return nil
-        }
-            .timeout(timeoutInterval, forcefullyAbortTimeout: timeoutInterval.divided)
-            .wait(fnName, file: file, line: line)
+internal actor PollBlockRunner {
+    private var lastPredicateResult: PredicateResult? = nil
 
-        return result
+    internal func pollBlock(
+        pollInterval: NimbleTimeInterval,
+        timeoutInterval: NimbleTimeInterval,
+        file: FileString,
+        line: UInt,
+        fnName: String = #function,
+        expression: @escaping () async throws -> (passed: Bool, predicateResult: PredicateResult)) async -> (result: PollResult<Bool>, lastPredicateResult: PredicateResult?) {
+            let awaiter = NimbleEnvironment.activeInstance.awaiter
+            let result = await awaiter.poll(pollInterval) { () throws -> Bool? in
+                let result = try await expression()
+                self.setLastPredicateResult(result.predicateResult)
+
+                if result.passed {
+                    return true
+                }
+                return nil
+            }
+                .timeout(timeoutInterval, forcefullyAbortTimeout: timeoutInterval.divided)
+                .wait(fnName, file: file, line: line)
+
+            return (result, lastPredicateResult)
+        }
+
+    private func setLastPredicateResult(_ result: PredicateResult) {
+        self.lastPredicateResult = result
+    }
 }
 
 #endif // #if !os(WASI)

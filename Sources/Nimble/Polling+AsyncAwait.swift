@@ -31,15 +31,16 @@ private func poll<T>(
     predicateRunner: @escaping () async throws -> PredicateResult
 ) async -> PredicateResult {
     let fnName = "expect(...).\(fnName)(...)"
-    var lastPredicateResult: PredicateResult?
-    let result = await pollBlock(
+    let pollBlockRunner = PollBlockRunner()
+
+    let (result, lastPredicateResult) = await pollBlockRunner.pollBlock(
         pollInterval: poll,
         timeoutInterval: timeout,
         file: expression.location.file,
         line: expression.location.line,
         fnName: fnName) {
-            lastPredicateResult = try await predicateRunner()
-            return lastPredicateResult!.toBoolean(expectation: style)
+            let result = try await predicateRunner()
+            return (result.toBoolean(expectation: style), result)
         }
     return processPollResult(result, matchStyle: matchStyle, lastPredicateResult: lastPredicateResult, fnName: fnName)
 }
