@@ -1,12 +1,12 @@
 import Foundation
 
 /// A Nimble matcher that succeeds when the actual value is an _exact_ instance of the given class.
-public func beAnInstanceOf<T>(_ expectedType: T.Type) -> Predicate<Any> {
+public func beAnInstanceOf<T>(_ expectedType: T.Type) -> NimblePredicate<Any> {
     let errorMessage = "be an instance of \(String(describing: expectedType))"
-    return Predicate.define { actualExpression in
+    return NimblePredicate.define { actualExpression in
         let instance = try actualExpression.evaluate()
         guard let validInstance = instance else {
-            return PredicateResult(
+            return NimblePredicateResult(
                 status: .doesNotMatch,
                 message: .expectedActualValueTo(errorMessage)
             )
@@ -14,8 +14,8 @@ public func beAnInstanceOf<T>(_ expectedType: T.Type) -> Predicate<Any> {
 
         let actualString = "<\(String(describing: type(of: validInstance))) instance>"
 
-        return PredicateResult(
-            status: PredicateStatus(bool: type(of: validInstance) == expectedType),
+        return NimblePredicateResult(
+            status: NimblePredicateStatus(bool: type(of: validInstance) == expectedType),
             message: .expectedCustomValueTo(errorMessage, actual: actualString)
         )
     }
@@ -23,9 +23,9 @@ public func beAnInstanceOf<T>(_ expectedType: T.Type) -> Predicate<Any> {
 
 /// A Nimble matcher that succeeds when the actual value is an instance of the given class.
 /// @see beAKindOf if you want to match against subclasses
-public func beAnInstanceOf(_ expectedClass: AnyClass) -> Predicate<NSObject> {
+public func beAnInstanceOf(_ expectedClass: AnyClass) -> NimblePredicate<NSObject> {
     let errorMessage = "be an instance of \(String(describing: expectedClass))"
-    return Predicate.define { actualExpression in
+    return NimblePredicate.define { actualExpression in
         let instance = try actualExpression.evaluate()
         let actualString: String
         if let validInstance = instance {
@@ -38,8 +38,8 @@ public func beAnInstanceOf(_ expectedClass: AnyClass) -> Predicate<NSObject> {
         #else
             let matches = instance != nil && type(of: instance!) == expectedClass
         #endif
-        return PredicateResult(
-            status: PredicateStatus(bool: matches),
+        return NimblePredicateResult(
+            status: NimblePredicateStatus(bool: matches),
             message: .expectedCustomValueTo(errorMessage, actual: actualString)
         )
     }

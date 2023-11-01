@@ -41,16 +41,16 @@ internal class NotificationCollector {
 private let mainThread = pthread_self()
 
 private func _postNotifications<Out>(
-    _ predicate: Predicate<[Notification]>,
+    _ predicate: NimblePredicate<[Notification]>,
     from center: NotificationCenter,
     names: Set<Notification.Name> = []
-) -> Predicate<Out> {
+) -> NimblePredicate<Out> {
     _ = mainThread // Force lazy-loading of this value
     let collector = NotificationCollector(notificationCenter: center, names: names)
     collector.startObserving()
     var once: Bool = false
 
-    return Predicate { actualExpression in
+    return NimblePredicate { actualExpression in
         let collectorNotificationsExpression = Expression(
             memoizedExpression: { _ in
                 return collector.observedNotifications
@@ -81,41 +81,41 @@ private func _postNotifications<Out>(
 }
 
 public func postNotifications<Out>(
-    _ predicate: Predicate<[Notification]>,
+    _ predicate: NimblePredicate<[Notification]>,
     from center: NotificationCenter = .default
-) -> Predicate<Out> {
+) -> NimblePredicate<Out> {
     _postNotifications(predicate, from: center)
 }
 
 @available(*, deprecated, renamed: "postNotifications(_:from:)")
 public func postNotifications<Out>(
-    _ predicate: Predicate<[Notification]>,
+    _ predicate: NimblePredicate<[Notification]>,
     fromNotificationCenter center: NotificationCenter
-) -> Predicate<Out> {
+) -> NimblePredicate<Out> {
     postNotifications(predicate, from: center)
 }
 
 #if os(macOS)
 public func postDistributedNotifications<Out>(
-    _ predicate: Predicate<[Notification]>,
+    _ predicate: NimblePredicate<[Notification]>,
     from center: DistributedNotificationCenter = .default(),
     names: Set<Notification.Name>
-) -> Predicate<Out> {
+) -> NimblePredicate<Out> {
     _postNotifications(predicate, from: center, names: names)
 }
 #endif
 
-@available(*, deprecated, message: "Use Predicate instead")
+@available(*, deprecated, message: "Use NimblePredicate instead")
 public func postNotifications<T>(
     _ notificationsMatcher: T,
     from center: NotificationCenter = .default
-) -> Predicate<Any> where T: Matcher, T.ValueType == [Notification] {
+) -> NimblePredicate<Any> where T: Matcher, T.ValueType == [Notification] {
     _ = mainThread // Force lazy-loading of this value
     let collector = NotificationCollector(notificationCenter: center)
     collector.startObserving()
     var once: Bool = false
 
-    return Predicate { actualExpression in
+    return NimblePredicate { actualExpression in
         let collectorNotificationsExpression = Expression(memoizedExpression: { _ in
             return collector.observedNotifications
             }, location: actualExpression.location, withoutCaching: true)
@@ -133,7 +133,7 @@ public func postNotifications<T>(
         } else {
             failureMessage.actualValue = "<\(stringify(collector.observedNotifications))>"
         }
-        return PredicateResult(bool: match, message: failureMessage.toExpectationMessage())
+        return NimblePredicateResult(bool: match, message: failureMessage.toExpectationMessage())
     }
 }
 
@@ -141,7 +141,7 @@ public func postNotifications<T>(
 public func postNotifications<T>(
     _ notificationsMatcher: T,
     fromNotificationCenter center: NotificationCenter
-) -> Predicate<Any> where T: Matcher, T.ValueType == [Notification] {
+) -> NimblePredicate<Any> where T: Matcher, T.ValueType == [Notification] {
     return postNotifications(notificationsMatcher, from: center)
 }
 #endif

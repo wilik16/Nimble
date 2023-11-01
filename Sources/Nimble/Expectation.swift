@@ -16,7 +16,7 @@ internal func expressionDoesNotMatch<T, U>(_ expression: Expression<T>, matcher:
     }
 }
 
-internal func execute<T>(_ expression: Expression<T>, _ style: ExpectationStyle, _ predicate: Predicate<T>, to: String, description: String?, captureExceptions: Bool = true) -> (Bool, FailureMessage) {
+internal func execute<T>(_ expression: Expression<T>, _ style: ExpectationStyle, _ predicate: NimblePredicate<T>, to: String, description: String?, captureExceptions: Bool = true) -> (Bool, FailureMessage) {
     func run() -> (Bool, FailureMessage) {
         let msg = FailureMessage()
         msg.userDescription = description
@@ -107,7 +107,7 @@ public struct Expectation<T> {
 
     /// Tests the actual value using a matcher to match.
     @discardableResult
-    public func to(_ predicate: Predicate<T>, description: String? = nil) -> Self {
+    public func to(_ predicate: NimblePredicate<T>, description: String? = nil) -> Self {
         let (pass, msg) = execute(expression, .toMatch, predicate, to: "to", description: description)
         verify(pass, msg)
         return self
@@ -115,7 +115,7 @@ public struct Expectation<T> {
 
     /// Tests the actual value using a matcher to not match.
     @discardableResult
-    public func toNot(_ predicate: Predicate<T>, description: String? = nil) -> Self {
+    public func toNot(_ predicate: NimblePredicate<T>, description: String? = nil) -> Self {
         let (pass, msg) = execute(expression, .toNotMatch, predicate, to: "to not", description: description)
         verify(pass, msg)
         return self
@@ -125,7 +125,7 @@ public struct Expectation<T> {
     ///
     /// Alias to toNot().
     @discardableResult
-    public func notTo(_ predicate: Predicate<T>, description: String? = nil) -> Self {
+    public func notTo(_ predicate: NimblePredicate<T>, description: String? = nil) -> Self {
         return toNot(predicate, description: description)
     }
 

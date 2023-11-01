@@ -1,9 +1,9 @@
 import XCTest
 import Nimble
 
-func alwaysFail<T>() -> Predicate<T> {
-    return Predicate { _ throws -> PredicateResult in
-        return PredicateResult(status: .fail, message: .fail("This matcher should always fail"))
+func alwaysFail<T>() -> NimblePredicate<T> {
+    return NimblePredicate { _ throws -> NimblePredicateResult in
+        return NimblePredicateResult(status: .fail, message: .fail("This matcher should always fail"))
     }
 }
 

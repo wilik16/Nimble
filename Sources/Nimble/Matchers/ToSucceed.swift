@@ -14,21 +14,21 @@ public enum ToSucceedResult {
  Return `.succeeded` when the validation succeeds.
  Return `.failed` with a failure reason when the validation fails.
  */
-public func succeed() -> Predicate<() -> ToSucceedResult> {
-    return Predicate.define { actualExpression in
+public func succeed() -> NimblePredicate<() -> ToSucceedResult> {
+    return NimblePredicate.define { actualExpression in
         let optActual = try actualExpression.evaluate()
         guard let actual = optActual else {
-            return PredicateResult(status: .fail, message: .fail("expected a closure, got <nil>"))
+            return NimblePredicateResult(status: .fail, message: .fail("expected a closure, got <nil>"))
         }
 
         switch actual() {
         case .succeeded:
-            return PredicateResult(
+            return NimblePredicateResult(
                 bool: true,
                 message: .expectedCustomValueTo("succeed", actual: "<succeeded>")
             )
         case .failed(let reason):
-            return PredicateResult(
+            return NimblePredicateResult(
                 bool: false,
                 message: .expectedCustomValueTo("succeed", actual: "<failed> because <\(reason)>")
             )

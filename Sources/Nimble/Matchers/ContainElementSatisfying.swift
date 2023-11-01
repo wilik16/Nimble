@@ -1,7 +1,7 @@
 public func containElementSatisfying<S: Sequence>(
     _ predicate: @escaping ((S.Element) -> Bool), _ predicateDescription: String = ""
-) -> Predicate<S> {
-    return Predicate.define { actualExpression in
+) -> NimblePredicate<S> {
+    return NimblePredicate.define { actualExpression in
         let message: ExpectationMessage
         if predicateDescription == "" {
             message = .expectedTo("find object in collection that satisfies predicate")
@@ -12,14 +12,14 @@ public func containElementSatisfying<S: Sequence>(
         if let sequence = try actualExpression.evaluate() {
             for object in sequence {
                 if predicate(object) {
-                    return PredicateResult(bool: true, message: message)
+                    return NimblePredicateResult(bool: true, message: message)
                 }
             }
 
-            return PredicateResult(bool: false, message: message)
+            return NimblePredicateResult(bool: false, message: message)
         }
 
-        return PredicateResult(status: .fail, message: message)
+        return NimblePredicateResult(status: .fail, message: message)
     }
 }
 

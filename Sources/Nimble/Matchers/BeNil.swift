@@ -1,8 +1,8 @@
 /// A Nimble matcher that succeeds when the actual value is nil.
-public func beNil<T>() -> Predicate<T> {
-    return Predicate.simpleNilable("be nil") { actualExpression in
+public func beNil<T>() -> NimblePredicate<T> {
+    return NimblePredicate.simpleNilable("be nil") { actualExpression in
         let actualValue = try actualExpression.evaluate()
-        return PredicateStatus(bool: actualValue == nil)
+        return NimblePredicateStatus(bool: actualValue == nil)
     }
 }
 

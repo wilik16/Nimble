@@ -6,21 +6,21 @@ private func matcherMessage(forClass expectedClass: AnyClass) -> String {
 }
 
 /// A Nimble matcher that succeeds when the actual value is an instance of the given class.
-public func beAKindOf<T>(_ expectedType: T.Type) -> Predicate<Any> {
-    return Predicate.define { actualExpression in
+public func beAKindOf<T>(_ expectedType: T.Type) -> NimblePredicate<Any> {
+    return NimblePredicate.define { actualExpression in
         let message: ExpectationMessage
 
         let instance = try actualExpression.evaluate()
         guard let validInstance = instance else {
             message = .expectedCustomValueTo(matcherMessage(forType: expectedType), actual: "<nil>")
-            return PredicateResult(status: .fail, message: message)
+            return NimblePredicateResult(status: .fail, message: message)
         }
         message = .expectedCustomValueTo(
             "be a kind of \(String(describing: expectedType))",
             actual: "<\(String(describing: type(of: validInstance))) instance>"
         )
 
-        return PredicateResult(
+        return NimblePredicateResult(
             bool: validInstance is T,
             message: message
         )
@@ -32,14 +32,14 @@ import class Foundation.NSObject
 
 /// A Nimble matcher that succeeds when the actual value is an instance of the given class.
 /// @see beAnInstanceOf if you want to match against the exact class
-public func beAKindOf(_ expectedClass: AnyClass) -> Predicate<NSObject> {
-    return Predicate.define { actualExpression in
+public func beAKindOf(_ expectedClass: AnyClass) -> NimblePredicate<NSObject> {
+    return NimblePredicate.define { actualExpression in
         let message: ExpectationMessage
-        let status: PredicateStatus
+        let status: NimblePredicateStatus
 
         let instance = try actualExpression.evaluate()
         if let validInstance = instance {
-            status = PredicateStatus(bool: instance != nil && instance!.isKind(of: expectedClass))
+            status = NimblePredicateStatus(bool: instance != nil && instance!.isKind(of: expectedClass))
             message = .expectedCustomValueTo(
                 matcherMessage(forClass: expectedClass),
                 actual: "<\(String(describing: type(of: validInstance))) instance>"
@@ -52,7 +52,7 @@ public func beAKindOf(_ expectedClass: AnyClass) -> Predicate<NSObject> {
             )
         }
 
-        return PredicateResult(status: status, message: message)
+        return NimblePredicateResult(status: status, message: message)
     }
 }
 

@@ -15,11 +15,11 @@ extension AsyncDefaults {
     public static var PollInterval: TimeInterval = 0.01
 }
 
-private func async<T>(style: ExpectationStyle, predicate: Predicate<T>, timeout: DispatchTimeInterval, poll: DispatchTimeInterval, fnName: String) -> Predicate<T> {
-    return Predicate { actualExpression in
+private func async<T>(style: ExpectationStyle, predicate: NimblePredicate<T>, timeout: DispatchTimeInterval, poll: DispatchTimeInterval, fnName: String) -> NimblePredicate<T> {
+    return NimblePredicate { actualExpression in
         let uncachedExpression = actualExpression.withoutCaching()
         let fnName = "expect(...).\(fnName)(...)"
-        var lastPredicateResult: PredicateResult?
+        var lastPredicateResult: NimblePredicateResult?
         let result = pollBlock(
             pollInterval: poll,
             timeoutInterval: timeout,
@@ -33,15 +33,15 @@ private func async<T>(style: ExpectationStyle, predicate: Predicate<T>, timeout:
         case .completed: return lastPredicateResult!
         case .timedOut:
             let message = lastPredicateResult?.message ?? .fail("timed out before returning a value")
-            return PredicateResult(status: .fail, message: message)
+            return NimblePredicateResult(status: .fail, message: message)
         case let .errorThrown(error):
-            return PredicateResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>"))
+            return NimblePredicateResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>"))
         case let .raisedException(exception):
-            return PredicateResult(status: .fail, message: .fail("unexpected exception raised: \(exception)"))
+            return NimblePredicateResult(status: .fail, message: .fail("unexpected exception raised: \(exception)"))
         case .blockedRunLoop:
             let message = lastPredicateResult?.message.appended(message: " (timed out, but main run loop was unresponsive).") ??
                 .fail("main run loop was unresponsive")
-            return PredicateResult(status: .fail, message: message)
+            return NimblePredicateResult(status: .fail, message: message)
         case .incomplete:
             internalError("Reached .incomplete state for \(fnName)(...).")
         }
@@ -62,7 +62,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toEventually(_ predicate: Predicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toEventually(_ predicate: NimblePredicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -82,7 +82,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toEventuallyNot(_ predicate: Predicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toEventuallyNot(_ predicate: NimblePredicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -110,7 +110,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toNotEventually(_ predicate: Predicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toNotEventually(_ predicate: NimblePredicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         return toEventuallyNot(predicate, timeout: timeout, pollInterval: pollInterval, description: description)
     }
 }

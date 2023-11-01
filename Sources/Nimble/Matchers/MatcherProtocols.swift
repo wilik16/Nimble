@@ -14,8 +14,8 @@ public protocol Matcher {
 
 @available(*, deprecated)
 extension Matcher {
-    var predicate: Predicate<ValueType> {
-        return Predicate.fromDeprecatedMatcher(self)
+    var predicate: NimblePredicate<ValueType> {
+        return NimblePredicate.fromDeprecatedMatcher(self)
     }
 
     var toClosure: (Expression<ValueType>, FailureMessage, Bool) throws -> Bool {

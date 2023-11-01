@@ -29,19 +29,19 @@ final class SynchronousTest: XCTestCase {
     }
 
     func testToMatchesIfMatcherReturnsTrue() {
-        expect(1).to(Predicate.simple { _ in .matches })
-        expect {1}.to(Predicate.simple { _ in .matches })
+        expect(1).to(NimblePredicate.simple { _ in .matches })
+        expect {1}.to(NimblePredicate.simple { _ in .matches })
     }
 
     func testToProvidesActualValueExpression() {
         var value: Int?
-        expect(1).to(Predicate.simple { expr in value = try expr.evaluate(); return .matches })
+        expect(1).to(NimblePredicate.simple { expr in value = try expr.evaluate(); return .matches })
         expect(value).to(equal(1))
     }
 
     func testToProvidesAMemoizedActualValueExpression() {
         var callCount = 0
-        expect { callCount += 1 }.to(Predicate.simple { expr in
+        expect { callCount += 1 }.to(NimblePredicate.simple { expr in
             _ = try expr.evaluate()
             _ = try expr.evaluate()
             return .matches
@@ -51,7 +51,7 @@ final class SynchronousTest: XCTestCase {
 
     func testToProvidesAMemoizedActualValueExpressionIsEvaluatedAtMatcherControl() {
         var callCount = 0
-        expect { callCount += 1 }.to(Predicate.simple { expr in
+        expect { callCount += 1 }.to(NimblePredicate.simple { expr in
             expect(callCount).to(equal(0))
             _ = try expr.evaluate()
             return .matches
@@ -68,19 +68,19 @@ final class SynchronousTest: XCTestCase {
 
     // repeated tests from to() for toNot()
     func testToNotMatchesIfMatcherReturnsTrue() {
-        expect(1).toNot(Predicate.simple { _ in .doesNotMatch })
-        expect {1}.toNot(Predicate.simple { _ in .doesNotMatch })
+        expect(1).toNot(NimblePredicate.simple { _ in .doesNotMatch })
+        expect {1}.toNot(NimblePredicate.simple { _ in .doesNotMatch })
     }
 
     func testToNotProvidesActualValueExpression() {
         var value: Int?
-        expect(1).toNot(Predicate.simple { expr in value = try expr.evaluate(); return .doesNotMatch })
+        expect(1).toNot(NimblePredicate.simple { expr in value = try expr.evaluate(); return .doesNotMatch })
         expect(value).to(equal(1))
     }
 
     func testToNotProvidesAMemoizedActualValueExpression() {
         var callCount = 0
-        expect { callCount += 1 }.toNot(Predicate.simple { expr in
+        expect { callCount += 1 }.toNot(NimblePredicate.simple { expr in
             _ = try expr.evaluate()
             _ = try expr.evaluate()
             return .doesNotMatch
@@ -90,7 +90,7 @@ final class SynchronousTest: XCTestCase {
 
     func testToNotProvidesAMemoizedActualValueExpressionIsEvaluatedAtMatcherControl() {
         var callCount = 0
-        expect { callCount += 1 }.toNot(Predicate.simple { expr in
+        expect { callCount += 1 }.toNot(NimblePredicate.simple { expr in
             expect(callCount).to(equal(0))
             _ = try expr.evaluate()
             return .doesNotMatch
@@ -100,18 +100,18 @@ final class SynchronousTest: XCTestCase {
 
     func testToNegativeMatches() {
         failsWithErrorMessage("expected to match, got <1>") {
-            expect(1).to(Predicate.simple { _ in .doesNotMatch })
+            expect(1).to(NimblePredicate.simple { _ in .doesNotMatch })
         }
     }
 
     func testToNotNegativeMatches() {
         failsWithErrorMessage("expected to not match, got <1>") {
-            expect(1).toNot(Predicate.simple { _ in .matches })
+            expect(1).toNot(NimblePredicate.simple { _ in .matches })
         }
     }
 
     func testNotToMatchesLikeToNot() {
-        expect(1).notTo(Predicate.simple { _ in .doesNotMatch })
+        expect(1).notTo(NimblePredicate.simple { _ in .doesNotMatch })
     }
 
     // MARK: Assertion chaining

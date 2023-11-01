@@ -6,9 +6,9 @@ public let DefaultDelta = 0.0001
 internal func isCloseTo(_ actualValue: NMBDoubleConvertible?,
                         expectedValue: NMBDoubleConvertible,
                         delta: Double)
-    -> PredicateResult {
+    -> NimblePredicateResult {
         let errorMessage = "be close to <\(stringify(expectedValue))> (within \(stringify(delta)))"
-        return PredicateResult(
+        return NimblePredicateResult(
             bool: actualValue != nil &&
                 abs(actualValue!.doubleValue - expectedValue.doubleValue) < delta,
             message: .expectedCustomValueTo(errorMessage, actual: "<\(stringify(actualValue))>")
@@ -19,14 +19,14 @@ internal func isCloseTo(_ actualValue: NMBDoubleConvertible?,
 /// point values which can have imprecise results when doing arithmetic on them.
 ///
 /// @see equal
-public func beCloseTo<Value: NMBDoubleConvertible>(_ expectedValue: Value, within delta: Double = DefaultDelta) -> Predicate<Value> {
-    return Predicate.define { actualExpression in
+public func beCloseTo<Value: NMBDoubleConvertible>(_ expectedValue: Value, within delta: Double = DefaultDelta) -> NimblePredicate<Value> {
+    return NimblePredicate.define { actualExpression in
         return isCloseTo(try actualExpression.evaluate(), expectedValue: expectedValue, delta: delta)
     }
 }
 
-private func beCloseTo(_ expectedValue: NMBDoubleConvertible, within delta: Double = DefaultDelta) -> Predicate<NMBDoubleConvertible> {
-    return Predicate.define { actualExpression in
+private func beCloseTo(_ expectedValue: NMBDoubleConvertible, within delta: Double = DefaultDelta) -> NimblePredicate<NMBDoubleConvertible> {
+    return NimblePredicate.define { actualExpression in
         return isCloseTo(try actualExpression.evaluate(), expectedValue: expectedValue, delta: delta)
     }
 }
@@ -61,9 +61,9 @@ extension NMBPredicate {
 }
 #endif
 
-public func beCloseTo(_ expectedValues: [Double], within delta: Double = DefaultDelta) -> Predicate<[Double]> {
+public func beCloseTo(_ expectedValues: [Double], within delta: Double = DefaultDelta) -> NimblePredicate<[Double]> {
     let errorMessage = "be close to <\(stringify(expectedValues))> (each within \(stringify(delta)))"
-    return Predicate.simple(errorMessage) { actualExpression in
+    return NimblePredicate.simple(errorMessage) { actualExpression in
         if let actual = try actualExpression.evaluate() {
             if actual.count != expectedValues.count {
                 return .doesNotMatch

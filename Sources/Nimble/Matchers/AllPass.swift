@@ -1,8 +1,8 @@
 public func allPass<S: Sequence>(
     _ passFunc: @escaping (S.Element?) throws -> Bool
-) -> Predicate<S> {
-    let matcher = Predicate.simpleNilable("pass a condition") { actualExpression in
-        return PredicateStatus(bool: try passFunc(try actualExpression.evaluate()))
+) -> NimblePredicate<S> {
+    let matcher = NimblePredicate.simpleNilable("pass a condition") { actualExpression in
+        return NimblePredicateStatus(bool: try passFunc(try actualExpression.evaluate()))
     }
     return createPredicate(matcher)
 }
@@ -10,26 +10,26 @@ public func allPass<S: Sequence>(
 public func allPass<S: Sequence>(
     _ passName: String,
     _ passFunc: @escaping (S.Element?) throws -> Bool
-) -> Predicate<S> {
-    let matcher = Predicate.simpleNilable(passName) { actualExpression in
-        return PredicateStatus(bool: try passFunc(try actualExpression.evaluate()))
+) -> NimblePredicate<S> {
+    let matcher = NimblePredicate.simpleNilable(passName) { actualExpression in
+        return NimblePredicateStatus(bool: try passFunc(try actualExpression.evaluate()))
     }
     return createPredicate(matcher)
 }
 
 @available(*, deprecated, message: "Use Predicate instead")
-public func allPass<S: Sequence, M: Matcher>(_ elementMatcher: M) -> Predicate<S> where S.Element == M.ValueType {
+public func allPass<S: Sequence, M: Matcher>(_ elementMatcher: M) -> NimblePredicate<S> where S.Element == M.ValueType {
     return createPredicate(elementMatcher.predicate)
 }
 
-public func allPass<S: Sequence>(_ elementPredicate: Predicate<S.Element>) -> Predicate<S> {
+public func allPass<S: Sequence>(_ elementPredicate: NimblePredicate<S.Element>) -> NimblePredicate<S> {
     return createPredicate(elementPredicate)
 }
 
-private func createPredicate<S: Sequence>(_ elementMatcher: Predicate<S.Element>) -> Predicate<S> {
-    return Predicate { actualExpression in
+private func createPredicate<S: Sequence>(_ elementMatcher: NimblePredicate<S.Element>) -> NimblePredicate<S> {
+    return NimblePredicate { actualExpression in
         guard let actualValue = try actualExpression.evaluate() else {
-            return PredicateResult(
+            return NimblePredicateResult(
                 status: .fail,
                 message: .appends(.expectedTo("all pass"), " (use beNil() to match nils)")
             )
@@ -50,13 +50,13 @@ private func createPredicate<S: Sequence>(_ elementMatcher: Predicate<S.Element>
                         after: ", but failed first at element <\(stringify(currentElement))>"
                             + " in <\(stringify(actualValue))>"
                 )
-                return PredicateResult(status: .doesNotMatch, message: failure)
+                return NimblePredicateResult(status: .doesNotMatch, message: failure)
             }
         }
         failure = failure.replacedExpectation({ expectation in
             return .expectedTo(expectation.expectedMessage)
         })
-        return PredicateResult(status: .matches, message: failure)
+        return NimblePredicateResult(status: .matches, message: failure)
     }
 }
 
@@ -98,7 +98,7 @@ extension NMBPredicate {
             }
 
             let expr = Expression(expression: ({ nsObjects }), location: location)
-            let pred: Predicate<[NSObject]> = createPredicate(Predicate { expr in
+            let pred: NimblePredicate<[NSObject]> = createPredicate(NimblePredicate { expr in
                 if let predicate = matcher as? NMBPredicate {
                     return predicate.satisfies(({ try expr.evaluate() }), location: expr.location).toSwift()
                 } else {
@@ -110,7 +110,7 @@ extension NMBPredicate {
                         location: expr.location
                     )
                     let expectationMsg = failureMessage.toExpectationMessage()
-                    return PredicateResult(
+                    return NimblePredicateResult(
                         bool: result,
                         message: expectationMsg
                     )

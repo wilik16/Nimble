@@ -4,8 +4,8 @@ import CwlPreconditionTesting
 import CwlPosixPreconditionTesting
 #endif
 
-public func throwAssertion<Out>() -> Predicate<Out> {
-    return Predicate { actualExpression in
+public func throwAssertion<Out>() -> NimblePredicate<Out> {
+    return NimblePredicate { actualExpression in
     #if arch(x86_64) && canImport(Darwin)
         let message = ExpectationMessage.expectedTo("throw an assertion")
 
@@ -35,12 +35,12 @@ public func throwAssertion<Out>() -> Predicate<Out> {
         }
 
         if let actualError = actualError {
-            return PredicateResult(
+            return NimblePredicateResult(
                 bool: false,
                 message: message.appended(message: "; threw error instead <\(actualError)>")
             )
         } else {
-            return PredicateResult(bool: caughtException != nil, message: message)
+            return NimblePredicateResult(bool: caughtException != nil, message: message)
         }
     #else
         fatalError("The throwAssertion Nimble matcher can only run on x86_64 platforms with " +

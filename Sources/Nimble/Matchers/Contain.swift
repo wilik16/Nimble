@@ -3,102 +3,102 @@ import Foundation
 #endif
 
 /// A Nimble matcher that succeeds when the actual sequence contains the expected values.
-public func contain<S: Sequence>(_ items: S.Element...) -> Predicate<S> where S.Element: Equatable {
+public func contain<S: Sequence>(_ items: S.Element...) -> NimblePredicate<S> where S.Element: Equatable {
     return contain(items)
 }
 
 /// A Nimble matcher that succeeds when the actual sequence contains the expected values.
-public func contain<S: Sequence>(_ items: [S.Element]) -> Predicate<S> where S.Element: Equatable {
-    return Predicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
+public func contain<S: Sequence>(_ items: [S.Element]) -> NimblePredicate<S> where S.Element: Equatable {
+    return NimblePredicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
         guard let actual = try actualExpression.evaluate() else { return .fail }
 
         let matches = items.allSatisfy {
             return actual.contains($0)
         }
-        return PredicateStatus(bool: matches)
+        return NimblePredicateStatus(bool: matches)
     }
 }
 
 /// A Nimble matcher that succeeds when the actual set contains the expected values.
-public func contain<S: SetAlgebra>(_ items: S.Element...) -> Predicate<S> where S.Element: Equatable {
+public func contain<S: SetAlgebra>(_ items: S.Element...) -> NimblePredicate<S> where S.Element: Equatable {
     return contain(items)
 }
 
 /// A Nimble matcher that succeeds when the actual set contains the expected values.
-public func contain<S: SetAlgebra>(_ items: [S.Element]) -> Predicate<S> where S.Element: Equatable {
-    return Predicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
+public func contain<S: SetAlgebra>(_ items: [S.Element]) -> NimblePredicate<S> where S.Element: Equatable {
+    return NimblePredicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
         guard let actual = try actualExpression.evaluate() else { return .fail }
 
         let matches = items.allSatisfy {
             return actual.contains($0)
         }
-        return PredicateStatus(bool: matches)
+        return NimblePredicateStatus(bool: matches)
     }
 }
 
 /// A Nimble matcher that succeeds when the actual set contains the expected values.
-public func contain<S: Sequence & SetAlgebra>(_ items: S.Element...) -> Predicate<S> where S.Element: Equatable {
+public func contain<S: Sequence & SetAlgebra>(_ items: S.Element...) -> NimblePredicate<S> where S.Element: Equatable {
     return contain(items)
 }
 
 /// A Nimble matcher that succeeds when the actual set contains the expected values.
-public func contain<S: Sequence & SetAlgebra>(_ items: [S.Element]) -> Predicate<S> where S.Element: Equatable {
-    return Predicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
+public func contain<S: Sequence & SetAlgebra>(_ items: [S.Element]) -> NimblePredicate<S> where S.Element: Equatable {
+    return NimblePredicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
         guard let actual = try actualExpression.evaluate() else { return .fail }
 
         let matches = items.allSatisfy {
             return actual.contains($0)
         }
-        return PredicateStatus(bool: matches)
+        return NimblePredicateStatus(bool: matches)
     }
 }
 
 /// A Nimble matcher that succeeds when the actual string contains the expected substring.
-public func contain(_ substrings: String...) -> Predicate<String> {
+public func contain(_ substrings: String...) -> NimblePredicate<String> {
     return contain(substrings)
 }
 
-public func contain(_ substrings: [String]) -> Predicate<String> {
-    return Predicate.simple("contain <\(arrayAsString(substrings))>") { actualExpression in
+public func contain(_ substrings: [String]) -> NimblePredicate<String> {
+    return NimblePredicate.simple("contain <\(arrayAsString(substrings))>") { actualExpression in
         guard let actual = try actualExpression.evaluate() else { return .fail }
 
         let matches = substrings.allSatisfy {
             let range = actual.range(of: $0)
             return range != nil && !range!.isEmpty
         }
-        return PredicateStatus(bool: matches)
+        return NimblePredicateStatus(bool: matches)
     }
 }
 
 #if canImport(Foundation)
 /// A Nimble matcher that succeeds when the actual string contains the expected substring.
-public func contain(_ substrings: NSString...) -> Predicate<NSString> {
+public func contain(_ substrings: NSString...) -> NimblePredicate<NSString> {
     return contain(substrings)
 }
 
-public func contain(_ substrings: [NSString]) -> Predicate<NSString> {
-    return Predicate.simple("contain <\(arrayAsString(substrings))>") { actualExpression in
+public func contain(_ substrings: [NSString]) -> NimblePredicate<NSString> {
+    return NimblePredicate.simple("contain <\(arrayAsString(substrings))>") { actualExpression in
         guard let actual = try actualExpression.evaluate() else { return .fail }
 
         let matches = substrings.allSatisfy { actual.range(of: $0.description).length != 0 }
-        return PredicateStatus(bool: matches)
+        return NimblePredicateStatus(bool: matches)
     }
 }
 #endif
 
 /// A Nimble matcher that succeeds when the actual collection contains the expected object.
-public func contain(_ items: Any?...) -> Predicate<NMBContainer> {
+public func contain(_ items: Any?...) -> NimblePredicate<NMBContainer> {
     return contain(items)
 }
 
-public func contain(_ items: [Any?]) -> Predicate<NMBContainer> {
-    return Predicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
+public func contain(_ items: [Any?]) -> NimblePredicate<NMBContainer> {
+    return NimblePredicate.simple("contain <\(arrayAsString(items))>") { actualExpression in
         guard let actual = try actualExpression.evaluate() else { return .fail }
 
         let matches = items.allSatisfy { item in
             return item.map { actual.contains($0) } ?? false
         }
-        return PredicateStatus(bool: matches)
+        return NimblePredicateStatus(bool: matches)
     }
 }
 

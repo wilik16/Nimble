@@ -16,11 +16,11 @@
 /// The Predicate provide the heavy lifting on how to assert against a given value. Internally,
 /// predicates are simple wrappers around closures to provide static type information and
 /// allow composition and wrapping of existing behaviors.
-public struct Predicate<T> {
-    fileprivate var matcher: (Expression<T>) throws -> PredicateResult
+public struct NimblePredicate<T> {
+    fileprivate var matcher: (Expression<T>) throws -> NimblePredicateResult
 
     /// Constructs a predicate that knows how take a given value
-    public init(_ matcher: @escaping (Expression<T>) throws -> PredicateResult) {
+    public init(_ matcher: @escaping (Expression<T>) throws -> NimblePredicateResult) {
         self.matcher = matcher
     }
 
@@ -28,45 +28,45 @@ public struct Predicate<T> {
     ///
     /// @param expression The value to run the predicate's logic against
     /// @returns A predicate result indicate passing or failing and an associated error message.
-    public func satisfies(_ expression: Expression<T>) throws -> PredicateResult {
+    public func satisfies(_ expression: Expression<T>) throws -> NimblePredicateResult {
         return try matcher(expression)
     }
 }
 
 /// Provides convenience helpers to defining predicates
-extension Predicate {
+extension NimblePredicate {
     /// Like Predicate() constructor, but automatically guard against nil (actual) values
-    public static func define(matcher: @escaping (Expression<T>) throws -> PredicateResult) -> Predicate<T> {
-        return Predicate<T> { actual in
+    public static func define(matcher: @escaping (Expression<T>) throws -> NimblePredicateResult) -> NimblePredicate<T> {
+        return NimblePredicate<T> { actual in
             return try matcher(actual)
         }.requireNonNil
     }
 
     /// Defines a predicate with a default message that can be returned in the closure
     /// Also ensures the predicate's actual value cannot pass with `nil` given.
-    public static func define(_ message: String = "match", matcher: @escaping (Expression<T>, ExpectationMessage) throws -> PredicateResult) -> Predicate<T> {
-        return Predicate<T> { actual in
+    public static func define(_ message: String = "match", matcher: @escaping (Expression<T>, ExpectationMessage) throws -> NimblePredicateResult) -> NimblePredicate<T> {
+        return NimblePredicate<T> { actual in
             return try matcher(actual, .expectedActualValueTo(message))
         }.requireNonNil
     }
 
     /// Defines a predicate with a default message that can be returned in the closure
     /// Unlike `define`, this allows nil values to succeed if the given closure chooses to.
-    public static func defineNilable(_ message: String = "match", matcher: @escaping (Expression<T>, ExpectationMessage) throws -> PredicateResult) -> Predicate<T> {
-        return Predicate<T> { actual in
+    public static func defineNilable(_ message: String = "match", matcher: @escaping (Expression<T>, ExpectationMessage) throws -> NimblePredicateResult) -> NimblePredicate<T> {
+        return NimblePredicate<T> { actual in
             return try matcher(actual, .expectedActualValueTo(message))
         }
     }
 }
 
-extension Predicate {
+extension NimblePredicate {
     /// Provides a simple predicate definition that provides no control over the predefined
     /// error message.
     ///
     /// Also ensures the predicate's actual value cannot pass with `nil` given.
-    public static func simple(_ message: String = "match", matcher: @escaping (Expression<T>) throws -> PredicateStatus) -> Predicate<T> {
-        return Predicate<T> { actual in
-            return PredicateResult(status: try matcher(actual), message: .expectedActualValueTo(message))
+    public static func simple(_ message: String = "match", matcher: @escaping (Expression<T>) throws -> NimblePredicateStatus) -> NimblePredicate<T> {
+        return NimblePredicate<T> { actual in
+            return NimblePredicateResult(status: try matcher(actual), message: .expectedActualValueTo(message))
         }.requireNonNil
     }
 
@@ -74,9 +74,9 @@ extension Predicate {
     /// error message.
     ///
     /// Unlike `simple`, this allows nil values to succeed if the given closure chooses to.
-    public static func simpleNilable(_ message: String = "match", matcher: @escaping (Expression<T>) throws -> PredicateStatus) -> Predicate<T> {
-        return Predicate<T> { actual in
-            return PredicateResult(status: try matcher(actual), message: .expectedActualValueTo(message))
+    public static func simpleNilable(_ message: String = "match", matcher: @escaping (Expression<T>) throws -> NimblePredicateStatus) -> NimblePredicate<T> {
+        return NimblePredicate<T> { actual in
+            return NimblePredicateResult(status: try matcher(actual), message: .expectedActualValueTo(message))
         }
     }
 }
@@ -88,21 +88,21 @@ public enum ExpectationStyle {
 
 /// The value that a Predicates return to describe if the given (actual) value matches the
 /// predicate.
-public struct PredicateResult {
+public struct NimblePredicateResult {
     /// Status indicates if the predicate matches, does not match, or fails.
-    public var status: PredicateStatus
+    public var status: NimblePredicateStatus
     /// The error message that can be displayed if it does not match
     public var message: ExpectationMessage
 
     /// Constructs a new PredicateResult with a given status and error message
-    public init(status: PredicateStatus, message: ExpectationMessage) {
+    public init(status: NimblePredicateStatus, message: ExpectationMessage) {
         self.status = status
         self.message = message
     }
 
     /// Shorthand to PredicateResult(status: PredicateStatus(bool: bool), message: message)
     public init(bool: Bool, message: ExpectationMessage) {
-        self.status = PredicateStatus(bool: bool)
+        self.status = NimblePredicateStatus(bool: bool)
         self.message = message
     }
 
@@ -113,7 +113,7 @@ public struct PredicateResult {
 }
 
 /// PredicateStatus is a trinary that indicates if a Predicate matches a given value or not
-public enum PredicateStatus {
+public enum NimblePredicateStatus {
     /// Matches indicates if the predicate / matcher passes with the given value
     ///
     /// For example, `equals(1)` returns `.matches` for `expect(1).to(equal(1))`.
@@ -165,15 +165,15 @@ public enum PredicateStatus {
     }
 }
 
-extension Predicate {
+extension NimblePredicate {
     /// Compatibility layer for old Matcher API, deprecated.
     /// Emulates the MatcherFunc API
-    internal static func _fromDeprecatedClosure(_ matcher: @escaping (Expression<T>, FailureMessage) throws -> Bool) -> Predicate {
-        return Predicate { actual in
+    internal static func _fromDeprecatedClosure(_ matcher: @escaping (Expression<T>, FailureMessage) throws -> Bool) -> NimblePredicate {
+        return NimblePredicate { actual in
             let failureMessage = FailureMessage()
             let result = try matcher(actual, failureMessage)
-            return PredicateResult(
-                status: PredicateStatus(bool: result),
+            return NimblePredicateResult(
+                status: NimblePredicateStatus(bool: result),
                 message: failureMessage.toExpectationMessage()
             )
         }
@@ -182,14 +182,14 @@ extension Predicate {
 
 // Backwards compatibility until Old Matcher API removal
 @available(*, deprecated, message: "Use Predicate directly instead")
-extension Predicate: Matcher {
+extension NimblePredicate: Matcher {
     /// Compatibility layer for old Matcher API, deprecated
-    public static func fromDeprecatedFullClosure(_ matcher: @escaping (Expression<T>, FailureMessage, Bool) throws -> Bool) -> Predicate {
-        return Predicate { actual in
+    public static func fromDeprecatedFullClosure(_ matcher: @escaping (Expression<T>, FailureMessage, Bool) throws -> Bool) -> NimblePredicate {
+        return NimblePredicate { actual in
             let failureMessage = FailureMessage()
             let result = try matcher(actual, failureMessage, true)
-            return PredicateResult(
-                status: PredicateStatus(bool: result),
+            return NimblePredicateResult(
+                status: NimblePredicateStatus(bool: result),
                 message: failureMessage.toExpectationMessage()
             )
         }
@@ -197,13 +197,13 @@ extension Predicate: Matcher {
 
     /// Compatibility layer for old Matcher API, deprecated.
     /// Emulates the MatcherFunc API
-    public static func fromDeprecatedClosure(_ matcher: @escaping (Expression<T>, FailureMessage) throws -> Bool) -> Predicate {
+    public static func fromDeprecatedClosure(_ matcher: @escaping (Expression<T>, FailureMessage) throws -> Bool) -> NimblePredicate {
         return _fromDeprecatedClosure(matcher)
     }
 
     /// Compatibility layer for old Matcher API, deprecated.
     /// Same as calling .predicate on a MatcherFunc or NonNilMatcherFunc type.
-    public static func fromDeprecatedMatcher<M>(_ matcher: M) -> Predicate where M: Matcher, M.ValueType == T {
+    public static func fromDeprecatedMatcher<M>(_ matcher: M) -> NimblePredicate where M: Matcher, M.ValueType == T {
         return self.fromDeprecatedFullClosure(matcher.toClosure)
     }
 
@@ -222,11 +222,11 @@ extension Predicate: Matcher {
     }
 }
 
-extension Predicate {
+extension NimblePredicate {
     // Someday, make this public? Needs documentation
-    internal func after(f: @escaping (Expression<T>, PredicateResult) throws -> PredicateResult) -> Predicate<T> {
+    internal func after(f: @escaping (Expression<T>, NimblePredicateResult) throws -> NimblePredicateResult) -> NimblePredicate<T> {
         // swiftlint:disable:previous identifier_name
-        return Predicate { actual -> PredicateResult in
+        return NimblePredicate { actual -> NimblePredicateResult in
             let result = try self.satisfies(actual)
             return try f(actual, result)
         }
@@ -236,10 +236,10 @@ extension Predicate {
     /// the actual value.
     ///
     /// This replaces `NonNilMatcherFunc`.
-    public var requireNonNil: Predicate<T> {
+    public var requireNonNil: NimblePredicate<T> {
         return after { actual, result in
             if try actual.evaluate() == nil {
-                return PredicateResult(
+                return NimblePredicateResult(
                     status: .fail,
                     message: result.message.appendedBeNilHint()
                 )
@@ -266,7 +266,7 @@ public class NMBPredicate: NSObject {
         do {
             return try self.predicate(expr)
         } catch let error {
-            return PredicateResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>")).toObjectiveC()
+            return NimblePredicateResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>")).toObjectiveC()
         }
     }
 }
@@ -299,13 +299,13 @@ final public class NMBPredicateResult: NSObject {
         self.message = message
     }
 
-    public func toSwift() -> PredicateResult {
-        return PredicateResult(status: status.toSwift(),
+    public func toSwift() -> NimblePredicateResult {
+        return NimblePredicateResult(status: status.toSwift(),
                                message: message.toSwift())
     }
 }
 
-extension PredicateResult {
+extension NimblePredicateResult {
     public func toObjectiveC() -> NMBPredicateResult {
         return NMBPredicateResult(status: status.toObjectiveC(), message: message.toObjectiveC())
     }
@@ -330,7 +330,7 @@ final public class NMBPredicateStatus: NSObject {
         return self.status == otherPredicate.status
     }
 
-    public static func from(status: PredicateStatus) -> NMBPredicateStatus {
+    public static func from(status: NimblePredicateStatus) -> NMBPredicateStatus {
         switch status {
         case .matches: return self.matches
         case .doesNotMatch: return self.doesNotMatch
@@ -339,10 +339,10 @@ final public class NMBPredicateStatus: NSObject {
     }
 
     public static func from(bool success: Bool) -> NMBPredicateStatus {
-        return self.from(status: PredicateStatus(bool: success))
+        return self.from(status: NimblePredicateStatus(bool: success))
     }
 
-    public func toSwift() -> PredicateStatus {
+    public func toSwift() -> NimblePredicateStatus {
         switch status {
         case NMBPredicateStatus.matches.status: return .matches
         case NMBPredicateStatus.doesNotMatch.status: return .doesNotMatch
@@ -353,7 +353,7 @@ final public class NMBPredicateStatus: NSObject {
     }
 }
 
-extension PredicateStatus {
+extension NimblePredicateStatus {
     public func toObjectiveC() -> NMBPredicateStatus {
         return NMBPredicateStatus.from(status: self)
     }

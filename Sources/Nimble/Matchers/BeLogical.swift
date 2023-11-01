@@ -72,10 +72,10 @@ extension UInt: ExpressibleByBooleanLiteral {
     }
 }
 
-internal func rename<T>(_ matcher: Predicate<T>, failureMessage message: ExpectationMessage) -> Predicate<T> {
-    return Predicate { actualExpression in
+internal func rename<T>(_ matcher: NimblePredicate<T>, failureMessage message: ExpectationMessage) -> NimblePredicate<T> {
+    return NimblePredicate { actualExpression in
         let result = try matcher.satisfies(actualExpression)
-        return PredicateResult(status: result.status, message: message)
+        return NimblePredicateResult(status: result.status, message: message)
     }.requireNonNil
 }
 
@@ -83,38 +83,38 @@ internal func rename<T>(_ matcher: Predicate<T>, failureMessage message: Expecta
 
 /// A Nimble matcher that succeeds when the actual value is exactly true.
 /// This matcher will not match against nils.
-public func beTrue() -> Predicate<Bool> {
+public func beTrue() -> NimblePredicate<Bool> {
     return rename(equal(true), failureMessage: .expectedActualValueTo("be true"))
 }
 
 /// A Nimble matcher that succeeds when the actual value is exactly false.
 /// This matcher will not match against nils.
-public func beFalse() -> Predicate<Bool> {
+public func beFalse() -> NimblePredicate<Bool> {
     return rename(equal(false), failureMessage: .expectedActualValueTo("be false"))
 }
 
 // MARK: beTruthy() / beFalsy()
 
 /// A Nimble matcher that succeeds when the actual value is not logically false.
-public func beTruthy<T: ExpressibleByBooleanLiteral & Equatable>() -> Predicate<T> {
-    return Predicate.simpleNilable("be truthy") { actualExpression in
+public func beTruthy<T: ExpressibleByBooleanLiteral & Equatable>() -> NimblePredicate<T> {
+    return NimblePredicate.simpleNilable("be truthy") { actualExpression in
         let actualValue = try actualExpression.evaluate()
         if let actualValue = actualValue {
-            return PredicateStatus(bool: actualValue == (true as T))
+            return NimblePredicateStatus(bool: actualValue == (true as T))
         }
-        return PredicateStatus(bool: actualValue != nil)
+        return NimblePredicateStatus(bool: actualValue != nil)
     }
 }
 
 /// A Nimble matcher that succeeds when the actual value is logically false.
 /// This matcher will match against nils.
-public func beFalsy<T: ExpressibleByBooleanLiteral & Equatable>() -> Predicate<T> {
-    return Predicate.simpleNilable("be falsy") { actualExpression in
+public func beFalsy<T: ExpressibleByBooleanLiteral & Equatable>() -> NimblePredicate<T> {
+    return NimblePredicate.simpleNilable("be falsy") { actualExpression in
         let actualValue = try actualExpression.evaluate()
         if let actualValue = actualValue {
-            return PredicateStatus(bool: actualValue == (false as T))
+            return NimblePredicateStatus(bool: actualValue == (false as T))
         }
-        return PredicateStatus(bool: actualValue == nil)
+        return NimblePredicateStatus(bool: actualValue == nil)
     }
 }
 

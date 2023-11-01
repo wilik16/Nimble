@@ -5,8 +5,8 @@
 
 /// A Nimble matcher that succeeds when the actual Collection's count equals
 /// the expected value
-public func haveCount<T: Collection>(_ expectedValue: Int) -> Predicate<T> {
-    return Predicate.define { actualExpression in
+public func haveCount<T: Collection>(_ expectedValue: Int) -> NimblePredicate<T> {
+    return NimblePredicate.define { actualExpression in
         if let actualValue = try actualExpression.evaluate() {
             let message = ExpectationMessage
                 .expectedCustomValueTo(
@@ -16,17 +16,17 @@ public func haveCount<T: Collection>(_ expectedValue: Int) -> Predicate<T> {
                 .appended(details: "Actual Value: \(stringify(actualValue))")
 
             let result = expectedValue == actualValue.count
-            return PredicateResult(bool: result, message: message)
+            return NimblePredicateResult(bool: result, message: message)
         } else {
-            return PredicateResult(status: .fail, message: .fail(""))
+            return NimblePredicateResult(status: .fail, message: .fail(""))
         }
     }
 }
 
 /// A Nimble matcher that succeeds when the actual collection's count equals
 /// the expected value
-public func haveCount(_ expectedValue: Int) -> Predicate<NMBCollection> {
-    return Predicate { actualExpression in
+public func haveCount(_ expectedValue: Int) -> NimblePredicate<NMBCollection> {
+    return NimblePredicate { actualExpression in
         if let actualValue = try actualExpression.evaluate() {
             let message = ExpectationMessage
                 .expectedCustomValueTo(
@@ -36,9 +36,9 @@ public func haveCount(_ expectedValue: Int) -> Predicate<NMBCollection> {
                 .appended(details: "Actual Value: \(stringify(actualValue))")
 
             let result = expectedValue == actualValue.count
-            return PredicateResult(bool: result, message: message)
+            return NimblePredicateResult(bool: result, message: message)
         } else {
-            return PredicateResult(status: .fail, message: .fail(""))
+            return NimblePredicateResult(status: .fail, message: .fail(""))
         }
     }
 }

@@ -6,7 +6,7 @@
 /// Values can support equal by supporting the Equatable protocol.
 public func equal<T1: Equatable, T2: Equatable>(
     _ expectedValue: (T1, T2)?
-) -> Predicate<(T1, T2)> {
+) -> NimblePredicate<(T1, T2)> {
     equal(expectedValue, by: ==)
 }
 
@@ -31,7 +31,7 @@ public func !=<T1: Equatable, T2: Equatable>(
 /// Values can support equal by supporting the Equatable protocol.
 public func equal<T1: Equatable, T2: Equatable, T3: Equatable>(
     _ expectedValue: (T1, T2, T3)?
-) -> Predicate<(T1, T2, T3)> {
+) -> NimblePredicate<(T1, T2, T3)> {
     equal(expectedValue, by: ==)
 }
 
@@ -56,7 +56,7 @@ public func !=<T1: Equatable, T2: Equatable, T3: Equatable>(
 /// Values can support equal by supporting the Equatable protocol.
 public func equal<T1: Equatable, T2: Equatable, T3: Equatable, T4: Equatable>(
     _ expectedValue: (T1, T2, T3, T4)?
-) -> Predicate<(T1, T2, T3, T4)> {
+) -> NimblePredicate<(T1, T2, T3, T4)> {
     equal(expectedValue, by: ==)
 }
 
@@ -81,7 +81,7 @@ public func !=<T1: Equatable, T2: Equatable, T3: Equatable, T4: Equatable>(
 /// Values can support equal by supporting the Equatable protocol.
 public func equal<T1: Equatable, T2: Equatable, T3: Equatable, T4: Equatable, T5: Equatable>(
     _ expectedValue: (T1, T2, T3, T4, T5)?
-) -> Predicate<(T1, T2, T3, T4, T5)> {
+) -> NimblePredicate<(T1, T2, T3, T4, T5)> {
     equal(expectedValue, by: ==)
 }
 
@@ -106,7 +106,7 @@ public func !=<T1: Equatable, T2: Equatable, T3: Equatable, T4: Equatable, T5: E
 /// Values can support equal by supporting the Equatable protocol.
 public func equal<T1: Equatable, T2: Equatable, T3: Equatable, T4: Equatable, T5: Equatable, T6: Equatable>(
     _ expectedValue: (T1, T2, T3, T4, T5, T6)?
-) -> Predicate<(T1, T2, T3, T4, T5, T6)> {
+) -> NimblePredicate<(T1, T2, T3, T4, T5, T6)> {
     equal(expectedValue, by: ==)
 }
 
