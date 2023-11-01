@@ -1,15 +1,15 @@
 /// A Nimble matcher that succeeds when the actual value matches with any of the matchers
 /// provided in the variable list of matchers.
-public func satisfyAnyOf<T>(_ predicates: Predicate<T>...) -> Predicate<T> {
+public func satisfyAnyOf<T>(_ predicates: Matcher<T>...) -> Matcher<T> {
     return satisfyAnyOf(predicates)
 }
 
 /// A Nimble matcher that succeeds when the actual value matches with any of the matchers
 /// provided in the array of matchers.
-public func satisfyAnyOf<T>(_ predicates: [Predicate<T>]) -> Predicate<T> {
-        return Predicate.define { actualExpression in
+public func satisfyAnyOf<T>(_ predicates: [Matcher<T>]) -> Matcher<T> {
+        return Matcher.define { actualExpression in
             var postfixMessages = [String]()
-            var status: PredicateStatus = .doesNotMatch
+            var status: MatcherStatus = .doesNotMatch
             for predicate in predicates {
                 let result = try predicate.satisfies(actualExpression)
                 if result.status == .fail {
@@ -32,32 +32,32 @@ public func satisfyAnyOf<T>(_ predicates: [Predicate<T>]) -> Predicate<T> {
                 )
             }
 
-            return PredicateResult(status: status, message: msg)
+            return MatcherResult(status: status, message: msg)
         }
 }
 
-public func || <T>(left: Predicate<T>, right: Predicate<T>) -> Predicate<T> {
+public func || <T>(left: Matcher<T>, right: Matcher<T>) -> Matcher<T> {
     return satisfyAnyOf(left, right)
 }
 
 #if canImport(Darwin)
 import class Foundation.NSObject
 
-extension NMBPredicate {
-    @objc public class func satisfyAnyOfMatcher(_ predicates: [NMBPredicate]) -> NMBPredicate {
-        return NMBPredicate { actualExpression in
+extension NMBMatcher {
+    @objc public class func satisfyAnyOfMatcher(_ predicates: [NMBMatcher]) -> NMBMatcher {
+        return NMBMatcher { actualExpression in
             if predicates.isEmpty {
-                return NMBPredicateResult(
-                    status: NMBPredicateStatus.fail,
+                return NMBMatcherResult(
+                    status: NMBMatcherStatus.fail,
                     message: NMBExpectationMessage(
                         fail: "satisfyAnyOf must be called with at least one matcher"
                     )
                 )
             }
 
-            var elementEvaluators = [Predicate<NSObject>]()
+            var elementEvaluators = [Matcher<NSObject>]()
             for predicate in predicates {
-                let elementEvaluator = Predicate<NSObject> { expression in
+                let elementEvaluator = Matcher<NSObject> { expression in
                     return predicate.satisfies({ try expression.evaluate() }, location: actualExpression.location).toSwift()
                 }
 

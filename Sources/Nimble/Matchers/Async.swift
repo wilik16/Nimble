@@ -18,58 +18,58 @@ private enum AsyncMatchStyle {
 private func async<T>(
     style: ExpectationStyle,
     matchStyle: AsyncMatchStyle,
-    predicate: Predicate<T>,
+    predicate: Matcher<T>,
     timeout: DispatchTimeInterval,
     poll: DispatchTimeInterval,
     fnName: String
-) -> Predicate<T> {
-    return Predicate { actualExpression in
+) -> Matcher<T> {
+    return Matcher { actualExpression in
         let uncachedExpression = actualExpression.withoutCaching()
         let fnName = "expect(...).\(fnName)(...)"
-        var lastPredicateResult: PredicateResult?
+        var lastMatcherResult: MatcherResult?
         let result = pollBlock(
             pollInterval: poll,
             timeoutInterval: timeout,
             file: actualExpression.location.file,
             line: actualExpression.location.line,
             fnName: fnName) {
-                lastPredicateResult = try predicate.satisfies(uncachedExpression)
-                return lastPredicateResult!.toBoolean(expectation: style)
+                lastMatcherResult = try predicate.satisfies(uncachedExpression)
+                return lastMatcherResult!.toBoolean(expectation: style)
         }
         switch result {
         case .completed:
             switch matchStyle {
             case .eventually:
-                return lastPredicateResult!
+                return lastMatcherResult!
             case .never:
-                return PredicateResult(
+                return MatcherResult(
                     status: .fail,
-                    message: lastPredicateResult?.message ?? .fail("matched the predicate when it shouldn't have")
+                    message: lastMatcherResult?.message ?? .fail("matched the predicate when it shouldn't have")
                 )
             case .always:
-                return PredicateResult(
+                return MatcherResult(
                     status: .fail,
-                    message: lastPredicateResult?.message ?? .fail("didn't match the predicate when it should have")
+                    message: lastMatcherResult?.message ?? .fail("didn't match the predicate when it should have")
                 )
             }
         case .timedOut:
             switch matchStyle {
             case .eventually:
-                let message = lastPredicateResult?.message ?? .fail("timed out before returning a value")
-                return PredicateResult(status: .fail, message: message)
+                let message = lastMatcherResult?.message ?? .fail("timed out before returning a value")
+                return MatcherResult(status: .fail, message: message)
             case .never:
-                return PredicateResult(status: .doesNotMatch, message: .expectedTo("never match the predicate"))
+                return MatcherResult(status: .doesNotMatch, message: .expectedTo("never match the predicate"))
             case .always:
-                return PredicateResult(status: .matches, message: .expectedTo("always match the predicate"))
+                return MatcherResult(status: .matches, message: .expectedTo("always match the predicate"))
             }
         case let .errorThrown(error):
-            return PredicateResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>"))
+            return MatcherResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>"))
         case let .raisedException(exception):
-            return PredicateResult(status: .fail, message: .fail("unexpected exception raised: \(exception)"))
+            return MatcherResult(status: .fail, message: .fail("unexpected exception raised: \(exception)"))
         case .blockedRunLoop:
-            let message = lastPredicateResult?.message.appended(message: " (timed out, but main run loop was unresponsive).") ??
+            let message = lastMatcherResult?.message.appended(message: " (timed out, but main run loop was unresponsive).") ??
                 .fail("main run loop was unresponsive")
-            return PredicateResult(status: .fail, message: message)
+            return MatcherResult(status: .fail, message: message)
         case .incomplete:
             internalError("Reached .incomplete state for \(fnName)(...).")
         }
@@ -90,7 +90,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toEventually(_ predicate: Predicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toEventually(_ predicate: Matcher<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -117,7 +117,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toEventuallyNot(_ predicate: Predicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toEventuallyNot(_ predicate: Matcher<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -146,7 +146,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toNotEventually(_ predicate: Predicate<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toNotEventually(_ predicate: Matcher<T>, timeout: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         return toEventuallyNot(predicate, timeout: timeout, pollInterval: pollInterval, description: description)
     }
 
@@ -156,7 +156,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toNever(_ predicate: Predicate<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toNever(_ predicate: Matcher<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -185,7 +185,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func neverTo(_ predicate: Predicate<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func neverTo(_ predicate: Matcher<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         return toNever(predicate, until: until, pollInterval: pollInterval, description: description)
     }
 
@@ -195,7 +195,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func toAlways(_ predicate: Predicate<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func toAlways(_ predicate: Matcher<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -224,7 +224,7 @@ extension Expectation {
     /// @discussion
     /// This function manages the main run loop (`NSRunLoop.mainRunLoop()`) while this function
     /// is executing. Any attempts to touch the run loop may cause non-deterministic behavior.
-    public func alwaysTo(_ predicate: Predicate<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
+    public func alwaysTo(_ predicate: Matcher<T>, until: DispatchTimeInterval = AsyncDefaults.timeout, pollInterval: DispatchTimeInterval = AsyncDefaults.pollInterval, description: String? = nil) {
         return toAlways(predicate, until: until, pollInterval: pollInterval, description: description)
     }
 }

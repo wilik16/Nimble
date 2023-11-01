@@ -82,8 +82,8 @@ public func catchBadInstruction(block: @escaping () -> Void) -> BadInstructionEx
 // swiftlint:enable all
 #endif
 
-public func throwAssertion<Out>() -> Predicate<Out> {
-    return Predicate { actualExpression in
+public func throwAssertion<Out>() -> Matcher<Out> {
+    return Matcher { actualExpression in
     #if os(watchOS)
         fatalError("Nimble currently doesn't support watchOS.")
     #elseif (arch(x86_64) || arch(arm64)) && (canImport(Darwin) || canImport(Glibc))
@@ -114,12 +114,12 @@ public func throwAssertion<Out>() -> Predicate<Out> {
         }
 
         if let actualError = actualError {
-            return PredicateResult(
+            return MatcherResult(
                 bool: false,
                 message: message.appended(message: "; threw error instead <\(actualError)>")
             )
         } else {
-            return PredicateResult(bool: caughtException != nil, message: message)
+            return MatcherResult(bool: caughtException != nil, message: message)
         }
     #else
         let message = """
