@@ -1,4 +1,4 @@
-internal func execute<T>(_ expression: Expression<T>, _ style: ExpectationStyle, _ predicate: Predicate<T>, to: String, description: String?, captureExceptions: Bool = true) -> (Bool, FailureMessage) {
+internal func execute<T>(_ expression: Expression<T>, _ style: ExpectationStyle, _ predicate: Matcher<T>, to: String, description: String?, captureExceptions: Bool = true) -> (Bool, FailureMessage) {
     func run() -> (Bool, FailureMessage) {
         let msg = FailureMessage()
         msg.userDescription = description
@@ -33,7 +33,7 @@ internal func execute<T>(_ expression: Expression<T>, _ style: ExpectationStyle,
     return result
 }
 
-internal func execute<T>(_ expression: AsyncExpression<T>, _ style: ExpectationStyle, _ predicate: AsyncPredicate<T>, to: String, description: String?) async -> (Bool, FailureMessage) {
+internal func execute<T>(_ expression: AsyncExpression<T>, _ style: ExpectationStyle, _ predicate: AsyncMatcher<T>, to: String, description: String?) async -> (Bool, FailureMessage) {
     let msg = FailureMessage()
     msg.userDescription = description
     msg.to = to
@@ -189,14 +189,14 @@ public struct SyncExpectation<Value>: Expectation {
 
     /// Tests the actual value using a matcher to match.
     @discardableResult
-    public func to(_ predicate: Predicate<Value>, description: String? = nil) -> Self {
+    public func to(_ predicate: Matcher<Value>, description: String? = nil) -> Self {
         let (pass, msg) = execute(expression, .toMatch, predicate, to: "to", description: description)
         return verify(pass, msg)
     }
 
     /// Tests the actual value using a matcher to not match.
     @discardableResult
-    public func toNot(_ predicate: Predicate<Value>, description: String? = nil) -> Self {
+    public func toNot(_ predicate: Matcher<Value>, description: String? = nil) -> Self {
         let (pass, msg) = execute(expression, .toNotMatch, predicate, to: "to not", description: description)
         return verify(pass, msg)
     }
@@ -205,21 +205,21 @@ public struct SyncExpectation<Value>: Expectation {
     ///
     /// Alias to toNot().
     @discardableResult
-    public func notTo(_ predicate: Predicate<Value>, description: String? = nil) -> Self {
+    public func notTo(_ predicate: Matcher<Value>, description: String? = nil) -> Self {
         toNot(predicate, description: description)
     }
 
-    // MARK: - AsyncPredicates
+    // MARK: - AsyncMatchers
     /// Tests the actual value using a matcher to match.
     @discardableResult
-    public func to(_ predicate: AsyncPredicate<Value>, description: String? = nil) async -> Self {
+    public func to(_ predicate: AsyncMatcher<Value>, description: String? = nil) async -> Self {
         let (pass, msg) = await execute(expression.toAsyncExpression(), .toMatch, predicate, to: "to", description: description)
         return verify(pass, msg)
     }
 
     /// Tests the actual value using a matcher to not match.
     @discardableResult
-    public func toNot(_ predicate: AsyncPredicate<Value>, description: String? = nil) async -> Self {
+    public func toNot(_ predicate: AsyncMatcher<Value>, description: String? = nil) async -> Self {
         let (pass, msg) = await execute(expression.toAsyncExpression(), .toNotMatch, predicate, to: "to not", description: description)
         return verify(pass, msg)
     }
@@ -228,7 +228,7 @@ public struct SyncExpectation<Value>: Expectation {
     ///
     /// Alias to toNot().
     @discardableResult
-    public func notTo(_ predicate: AsyncPredicate<Value>, description: String? = nil) async -> Self {
+    public func notTo(_ predicate: AsyncMatcher<Value>, description: String? = nil) async -> Self {
         await toNot(predicate, description: description)
     }
 
@@ -282,14 +282,14 @@ public struct AsyncExpectation<Value>: Expectation {
 
     /// Tests the actual value using a matcher to match.
     @discardableResult
-    public func to(_ predicate: Predicate<Value>, description: String? = nil) async -> Self {
+    public func to(_ predicate: Matcher<Value>, description: String? = nil) async -> Self {
         let (pass, msg) = execute(await expression.toSynchronousExpression(), .toMatch, predicate, to: "to", description: description)
         return verify(pass, msg)
     }
 
     /// Tests the actual value using a matcher to not match.
     @discardableResult
-    public func toNot(_ predicate: Predicate<Value>, description: String? = nil) async -> Self {
+    public func toNot(_ predicate: Matcher<Value>, description: String? = nil) async -> Self {
         let (pass, msg) = execute(await expression.toSynchronousExpression(), .toNotMatch, predicate, to: "to not", description: description)
         return verify(pass, msg)
     }
@@ -298,20 +298,20 @@ public struct AsyncExpectation<Value>: Expectation {
     ///
     /// Alias to toNot().
     @discardableResult
-    public func notTo(_ predicate: Predicate<Value>, description: String? = nil) async -> Self {
+    public func notTo(_ predicate: Matcher<Value>, description: String? = nil) async -> Self {
         await toNot(predicate, description: description)
     }
 
     /// Tests the actual value using a matcher to match.
     @discardableResult
-    public func to(_ predicate: AsyncPredicate<Value>, description: String? = nil) async -> Self {
+    public func to(_ predicate: AsyncMatcher<Value>, description: String? = nil) async -> Self {
         let (pass, msg) = await execute(expression, .toMatch, predicate, to: "to", description: description)
         return verify(pass, msg)
     }
 
     /// Tests the actual value using a matcher to not match.
     @discardableResult
-    public func toNot(_ predicate: AsyncPredicate<Value>, description: String? = nil) async -> Self {
+    public func toNot(_ predicate: AsyncMatcher<Value>, description: String? = nil) async -> Self {
         let (pass, msg) = await execute(expression, .toNotMatch, predicate, to: "to not", description: description)
         return verify(pass, msg)
     }
@@ -320,7 +320,7 @@ public struct AsyncExpectation<Value>: Expectation {
     ///
     /// Alias to toNot().
     @discardableResult
-    public func notTo(_ predicate: AsyncPredicate<Value>, description: String? = nil) async -> Self {
+    public func notTo(_ predicate: AsyncMatcher<Value>, description: String? = nil) async -> Self {
         await toNot(predicate, description: description)
     }
 }

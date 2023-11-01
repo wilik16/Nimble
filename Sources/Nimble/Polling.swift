@@ -47,64 +47,64 @@ internal enum AsyncMatchStyle {
 private func poll<T>(
     style: ExpectationStyle,
     matchStyle: AsyncMatchStyle,
-    predicate: Predicate<T>,
+    predicate: Matcher<T>,
     timeout: NimbleTimeInterval,
     poll: NimbleTimeInterval,
     fnName: String
-) -> Predicate<T> {
-    return Predicate { actualExpression in
+) -> Matcher<T> {
+    return Matcher { actualExpression in
         let uncachedExpression = actualExpression.withoutCaching()
         let fnName = "expect(...).\(fnName)(...)"
-        var lastPredicateResult: PredicateResult?
+        var lastMatcherResult: MatcherResult?
         let result = pollBlock(
             pollInterval: poll,
             timeoutInterval: timeout,
             file: actualExpression.location.file,
             line: actualExpression.location.line,
             fnName: fnName) {
-                lastPredicateResult = try predicate.satisfies(uncachedExpression)
-                return lastPredicateResult!.toBoolean(expectation: style)
+                lastMatcherResult = try predicate.satisfies(uncachedExpression)
+                return lastMatcherResult!.toBoolean(expectation: style)
         }
-        return processPollResult(result, matchStyle: matchStyle, lastPredicateResult: lastPredicateResult, fnName: fnName)
+        return processPollResult(result, matchStyle: matchStyle, lastMatcherResult: lastMatcherResult, fnName: fnName)
     }
 }
 
 // swiftlint:disable:next cyclomatic_complexity
-internal func processPollResult(_ result: PollResult<Bool>, matchStyle: AsyncMatchStyle, lastPredicateResult: PredicateResult?, fnName: String) -> PredicateResult {
+internal func processPollResult(_ result: PollResult<Bool>, matchStyle: AsyncMatchStyle, lastMatcherResult: MatcherResult?, fnName: String) -> MatcherResult {
     switch result {
     case .completed:
         switch matchStyle {
         case .eventually:
-            return lastPredicateResult!
+            return lastMatcherResult!
         case .never:
-            return PredicateResult(
+            return MatcherResult(
                 status: .fail,
-                message: lastPredicateResult?.message ?? .fail("matched the predicate when it shouldn't have")
+                message: lastMatcherResult?.message ?? .fail("matched the predicate when it shouldn't have")
             )
         case .always:
-            return PredicateResult(
+            return MatcherResult(
                 status: .fail,
-                message: lastPredicateResult?.message ?? .fail("didn't match the predicate when it should have")
+                message: lastMatcherResult?.message ?? .fail("didn't match the predicate when it should have")
             )
         }
     case .timedOut:
         switch matchStyle {
         case .eventually:
-            let message = lastPredicateResult?.message ?? .fail("timed out before returning a value")
-            return PredicateResult(status: .fail, message: message)
+            let message = lastMatcherResult?.message ?? .fail("timed out before returning a value")
+            return MatcherResult(status: .fail, message: message)
         case .never:
-            return PredicateResult(status: .doesNotMatch, message: .expectedTo("never match the predicate"))
+            return MatcherResult(status: .doesNotMatch, message: .expectedTo("never match the predicate"))
         case .always:
-            return PredicateResult(status: .matches, message: .expectedTo("always match the predicate"))
+            return MatcherResult(status: .matches, message: .expectedTo("always match the predicate"))
         }
     case let .errorThrown(error):
-        return PredicateResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>"))
+        return MatcherResult(status: .fail, message: .fail("unexpected error thrown: <\(error)>"))
     case let .raisedException(exception):
-        return PredicateResult(status: .fail, message: .fail("unexpected exception raised: \(exception)"))
+        return MatcherResult(status: .fail, message: .fail("unexpected exception raised: \(exception)"))
     case .blockedRunLoop:
-        let message = lastPredicateResult?.message.appended(message: " (timed out, but main run loop was unresponsive).") ??
+        let message = lastMatcherResult?.message.appended(message: " (timed out, but main run loop was unresponsive).") ??
             .fail("main run loop was unresponsive")
-        return PredicateResult(status: .fail, message: message)
+        return MatcherResult(status: .fail, message: message)
     case .incomplete:
         internalError("Reached .incomplete state for \(fnName)(...).")
     }
@@ -129,7 +129,7 @@ extension SyncExpectation {
     /// This form of `toEventually` does not work in any kind of async context. Use the async form of `toEventually` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `toEventually` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func toEventually(_ predicate: Predicate<Value>, timeout: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func toEventually(_ predicate: Matcher<Value>, timeout: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -162,7 +162,7 @@ extension SyncExpectation {
     /// Use the async form of `toEventuallyNot` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `toEventuallyNot` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func toEventuallyNot(_ predicate: Predicate<Value>, timeout: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func toEventuallyNot(_ predicate: Matcher<Value>, timeout: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -197,7 +197,7 @@ extension SyncExpectation {
     /// Use the async form of `toNotEventually` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `toNotEventually` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func toNotEventually(_ predicate: Predicate<Value>, timeout: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func toNotEventually(_ predicate: Matcher<Value>, timeout: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         return toEventuallyNot(predicate, timeout: timeout, pollInterval: pollInterval, description: description)
     }
 
@@ -213,7 +213,7 @@ extension SyncExpectation {
     /// Use the async form of `toNever` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `toNever` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func toNever(_ predicate: Predicate<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func toNever(_ predicate: Matcher<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -248,7 +248,7 @@ extension SyncExpectation {
     /// Use the async form of `neverTo` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `neverTo` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func neverTo(_ predicate: Predicate<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func neverTo(_ predicate: Matcher<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         return toNever(predicate, until: until, pollInterval: pollInterval, description: description)
     }
 
@@ -264,7 +264,7 @@ extension SyncExpectation {
     /// Use the async form of `toAlways` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `toAlways` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func toAlways(_ predicate: Predicate<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func toAlways(_ predicate: Matcher<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         nimblePrecondition(expression.isClosure, "NimbleInternalError", toEventuallyRequiresClosureError.stringValue)
 
         let (pass, msg) = execute(
@@ -299,7 +299,7 @@ extension SyncExpectation {
     /// Use the async form of `alwaysTo` if you are running tests in an async context.
     @discardableResult
     @available(*, noasync, message: "the sync variant of `alwaysTo` does not work in async contexts. Use the async variant as a drop-in replacement")
-    public func alwaysTo(_ predicate: Predicate<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
+    public func alwaysTo(_ predicate: Matcher<Value>, until: NimbleTimeInterval = PollingDefaults.timeout, pollInterval: NimbleTimeInterval = PollingDefaults.pollInterval, description: String? = nil) -> Self {
         return toAlways(predicate, until: until, pollInterval: pollInterval, description: description)
     }
 }
